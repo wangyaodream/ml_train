@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras import models
 from keras import layers
-from keras import optimizers
-from keras import losses
-from keras import metrics
+# from keras import optimizers
+# from keras import losses
+# from keras import metrics
+from keras import regularizers
 from keras.datasets import imdb
 
 # get datasets 限定为前10000个常见的单词，单词索引不会超过10000
@@ -30,14 +31,26 @@ y_test = np.asarray(test_labels).astype('float32')
 
 # 构建网络
 model = models.Sequential()
+# 此处网络是没有进行权重正则化，所以很快就过拟合了
+# model.add(layers.Dense(16, activation="relu", input_shape=(10000,)))
+# model.add(layers.Dense(16, activation="relu"))
+# model.add(layers.Dense(1, activation="sigmoid"))
+
+# 使用dropout
 model.add(layers.Dense(16, activation="relu", input_shape=(10000,)))
+model.add(layers.Dropout(0.5))
 model.add(layers.Dense(16, activation="relu"))
+model.add(layers.Dropout(0.5))
 model.add(layers.Dense(1, activation="sigmoid"))
 
+# 添加权重正则化去拟合l2
+# model.add(layers.Dense(16,kernel_regularizer=regularizers.l2(0.001), activation="relu", input_shape=(10000,)))
+# model.add(layers.Dense(16, kernel_regularizer=regularizers.l2(0.001), activation="relu"))
+# model.add(layers.Dense(1, activation="sigmoid"))
 # 配置优化器损失函数
-model.compile(optimizer=optimizers.RMSprop(learning_rate=0.001),
-              loss=losses.binary_crossentropy,
-              metrics=[metrics.binary_accuracy])
+model.compile(optimizer='rmsprop',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
 
 
 # 验证方法
