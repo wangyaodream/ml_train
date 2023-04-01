@@ -1,5 +1,8 @@
+import json
 import os, shutil
 
+from keras import layers, models, optimizers
+from keras.engine.training import optimizer
 from keras.preprocessing.image import ImageDataGenerator
 
 
@@ -14,6 +17,9 @@ class Handler:
     def init_dir(self):
         print('start...')
         if os.path.exists(base_dir):
+            self.train_dir = os.path.join(base_dir, 'train')
+            self.validation_dir = os.path.join(base_dir, 'validation') 
+            self.test_dir = os.path.join(base_dir, 'test')
             return
 
         os.mkdir(base_dir)
@@ -90,6 +96,24 @@ class Handler:
     def run(self):
         self.init_dir()
 
+        # 构建网络
+        model = models.Sequential()
+        model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(150,150,3)))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Conv2D(128, (3, 3), activation='relu'))
+        model.add(layers.MaxPooling2D((2, 2)))
+        model.add(layers.Flatten())
+        model.add(layers.Dense(512, activation='relu'))
+        model.add(layers.Dense(1, activation='sigmoid'))
+
+        model.compile(loss='binary_crossentropy',
+                      optimizer=optimizers.RMSprop(learning_rate=1e-4),
+                      metrics=['accuracy'])
+
         # 将素有图像乘以1/255缩放
         train_dategen = ImageDataGenerator(rescale=1./255)
         test_dategen = ImageDataGenerator(rescale=1./255)
@@ -108,10 +132,22 @@ class Handler:
             class_mode='binary'
         )
 
+        history = model.fit_generator(
+            train_generator,
+            steps_per_epoch=100,
+            epochs=30,
+            validation_data=validation_generator,
+            validation_steps=50
+        )
+        model.save('temp/cats_and_dogs_small_1.h5')
+        with open("temp/result.json", 'w') as fp:
+            fp.write(json.dumps(history.history))
+        print("Done!")
+
+
 def main():
     handle = Handler()
     handle.run()
-    print("目录生成完毕!")
 
 
 if __name__ == "__main__":
