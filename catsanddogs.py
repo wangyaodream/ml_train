@@ -106,6 +106,8 @@ class Handler:
         model.add(layers.Conv2D(128, (3, 3), activation='relu'))
         model.add(layers.MaxPooling2D((2, 2)))
         model.add(layers.Flatten())
+        # 添加dropout来降低拟合
+        model.add(layers.Dropout(0.5))
         model.add(layers.Dense(512, activation='relu'))
         model.add(layers.Dense(1, activation='sigmoid'))
 
@@ -114,31 +116,43 @@ class Handler:
                       metrics=['accuracy'])
 
         # 将素有图像乘以1/255缩放
-        train_dategen = ImageDataGenerator(rescale=1./255)
-        test_dategen = ImageDataGenerator(rescale=1./255)
+        # train_dategen = ImageDataGenerator(rescale=1./255)
+        # test_dategen = ImageDataGenerator(rescale=1./255)
 
-        train_generator = train_dategen.flow_from_directory(
+        # 使用数据增强
+        train_datagen = ImageDataGenerator(
+                rescale=1./255,
+                rotation_range=40,
+                width_shift_range=0.2,
+                height_shift_range=0.2,
+                shear_range=0.2,
+                zoom_range=0.2,
+                horizontal_flip=True)
+
+        test_datagen = ImageDataGenerator(rescale=1./255)
+        train_generator = train_datagen.flow_from_directory(
             self.train_dir,
             target_size=(150,150),
-            batch_size=20,
+            batch_size=32,
             class_mode='binary'
                 )
 
-        validation_generator = test_dategen.flow_from_directory(
+        validation_generator = test_datagen.flow_from_directory(
             self.validation_dir,
             target_size=(150,150),
-            batch_size=20,
+            batch_size=32,
             class_mode='binary'
         )
+
 
         history = model.fit_generator(
             train_generator,
             steps_per_epoch=100,
-            epochs=30,
+            epochs=100,
             validation_data=validation_generator,
             validation_steps=50
         )
-        model.save('temp/cats_and_dogs_small_1.h5')
+        model.save('temp/cats_and_dogs_small_2.h5')
         with open("temp/result.json", 'w') as fp:
             fp.write(json.dumps(history.history))
         print("Done!")
