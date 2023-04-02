@@ -2,7 +2,6 @@ import json
 import os, shutil
 
 from keras import layers, models, optimizers
-from keras.engine.training import optimizer
 from keras.preprocessing.image import ImageDataGenerator
 
 
