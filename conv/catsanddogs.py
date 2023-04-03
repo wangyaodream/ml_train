@@ -133,14 +133,14 @@ class Handler:
         train_generator = train_datagen.flow_from_directory(
             self.train_dir,
             target_size=(150,150),
-            batch_size=32,
+            batch_size=20,
             class_mode='binary'
                 )
 
         validation_generator = test_datagen.flow_from_directory(
             self.validation_dir,
             target_size=(150,150),
-            batch_size=32,
+            batch_size=20,
             class_mode='binary'
         )
 
@@ -150,8 +150,8 @@ class Handler:
             steps_per_epoch=100,
             epochs=100,
             validation_data=validation_generator,
-            validation_steps=50
-        )
+            validation_steps=50)
+
         model.save('temp/cats_and_dogs_small_2.h5')
         with open("temp/result.json", 'w') as fp:
             fp.write(json.dumps(history.history))
