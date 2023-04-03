@@ -1,4 +1,5 @@
 import os
+import json
 
 import numpy as np
 from keras import models, layers, optimizers
@@ -38,11 +39,13 @@ def extract_features(directory, sample_count):
             break
     return features, labels
 
+print("开始提取特征...")
 # 开始提取特征
 train_features, train_labels = extract_features(train_dir, 2000)
 validation_features, validation_labels = extract_features(validation_dir, 1000)
 test_features, test_labels = extract_features(test_dir, 1000)
 
+print("将数据展平...")
 # 将矩阵展平
 train_features = np.reshape(train_features, (2000, 4 * 4 * 512))
 validation_features = np.reshape(validation_features, (1000, 4 * 4 * 512))
@@ -56,7 +59,7 @@ model.add(layers.Dropout(0.5))
 model.add(layers.Dense(1, activation='sigmoid'))
 
 model.compile(optimizers.RMSprop(learning_rate=2e-5),
-              loss='binary_corssentropy',
+              loss='binary_crossentropy',
               metrics=['acc'])
 
 history = model.fit(train_features, train_labels,
@@ -65,3 +68,7 @@ history = model.fit(train_features, train_labels,
                     validation_data=(validation_features, validation_labels))
 
 
+with open("../temp/preprocess_result.json", "w") as fp:
+    fp.write(json.dumps(history.history))
+
+model.save("../temp/preprocess_model.h5")
