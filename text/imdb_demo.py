@@ -39,3 +39,19 @@ word_index = tokenizer.word_index
 print('Found %s unique tokens.' % len(word_index))
 
 data = pad_sequences(sequences, maxlen=maxlen)
+
+labels = np.asarray(labels)
+print('Shape of data tensor:', data.shape)
+print('Shape of label tensor:', labels.shape)
+
+# 将数据划分为训练集和验证集，打乱顺序，将正面评论和负面评论都混合在一起
+indices = np.arange(data.shape[0])
+np.random.shuffle(indices)
+data = data[indices]
+labels = labels[indices]
+
+
+x_train = data[:training_samples]
+y_train = labels[:training_samples]
+x_val = data[training_samples: training_samples + validation_samples]
+y_val = labels[training_samples: training_samples + validation_samples]
